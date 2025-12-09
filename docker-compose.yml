@@ -1,0 +1,59 @@
+version: '3'
+
+services:
+
+  namenode:
+    image: usmanakhtar17/bigdatacourse:namenode
+    container_name: namenode
+    hostname: namenode
+    volumes:
+      - ./data/hdfs/namenode:/hadoop/dfs/name
+    environment:
+      - CLUSTER_NAME=test
+    env_file:
+      - ./data/hadoop/hadoop-hive.env
+    ports:
+      - "55070:50070"
+    deploy:
+      resources:
+        limits:
+          memory: 500m
+
+  datanode:
+    image: fjardim/datanode
+    container_name: datanode
+    hostname: datanode
+    volumes:
+      - ./data/hdfs/datanode:/hadoop/dfs/data
+    env_file:
+      - ./data/hadoop/hadoop-hive.env
+    environment:
+      SERVICE_PRECONDITION: "namenode:50070"
+    depends_on:
+      - namenode
+    ports:
+      - "55075:50075"
+    deploy:
+      resources:
+        limits:
+          memory: 500m
+
+  jupyter-notebook-custom:
+    image: usmanakhtar17/jupyter-spark
+    hostname: jupyter-spark
+    container_name: jupyter-spark
+    command: notebook
+    env_file:
+      - ./data/jupyter/jupyter.env
+    ports:
+      - "8889:8889"
+      - "4040:4040"
+    volumes:
+      - ./data/notebooks:/mnt/notebooks/
+    environment:
+      SPARK_MASTER: local[*]
+      JUPYTER_PORT: 8889
+    deploy:
+      resources:
+        limits:
+          memory: 1g
